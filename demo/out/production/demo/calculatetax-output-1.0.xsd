@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:tax="http://www.jcpenney.com/2011/CALCULATETAX"
+  targetNamespace="http://www.jcpenney.com/2011/CALCULATETAX"
+  elementFormDefault="unqualified" 
+  attributeFormDefault="unqualified"
+  version="2.0.2">
+  
+  <xs:annotation>
+    <xs:documentation xml:lang="en">
+    This XML schema defines the structure of XML messages that 
+    are to be sent from the OrderTotalService in response to a
+    request from an external client.
+    </xs:documentation>
+  </xs:annotation>
+  
+  <!-- Define the Calculate Tax output elements of the XML -->
+  <xs:element name="CalculateTaxOutput">
+    <xs:complexType>
+      <xs:sequence>
+        <!-- This element is to contain information about a failure to provide a valid response -->
+        <xs:element name="error" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:attribute name="message" type="xs:string"/>
+            <xs:attribute name="details" type="xs:string" use="optional"/>
+          </xs:complexType>
+        </xs:element>
+        <!-- The actual response elements from OTS -->
+        <xs:element name="order" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="lineItems" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="lineItem" type="tax:LineItem" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="totals" type="tax:Totals"/>
+                          
+            </xs:sequence>
+            
+            <!-- Order level attributes -->
+            <xs:attribute name="orderDate" type="xs:dateTime" use="required"/>
+            <xs:attribute name="orderNumber" type="xs:string" use="required"/>
+            
+          </xs:complexType>
+        </xs:element>
+      
+      </xs:sequence>
+      <!-- General output XML attributes -->
+      <xs:attribute name="scenario" type="xs:string" default="CalculateTaxOutput"/>
+      <xs:attribute name="sourceSystem" type="xs:string" use="required"/>
+      <xs:attribute name="transactionId" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:complexType name="LineItem">
+    <xs:attribute name="lineItemSeqNumber" type="xs:positiveInteger" use="required"/>
+    <xs:attribute name="quantity" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="extendedPurchasePrice" type="tax:anyValidMoney" use="required"/>
+    <xs:attribute name="extendedShippingPrice" type="tax:anyValidMoney" use="required"/>
+    <xs:attribute name="productCode" type="xs:string" use="required"/>
+        
+    <xs:attribute name="lineItemTaxAmt" type="tax:anyValidMoney" use="required"/>
+    <xs:attribute name="lineItemTaxPct" type="xs:decimal" use="required"/>
+    <xs:attribute name="lineItemLocalTaxPct" type="xs:decimal" use="required"/>
+    <xs:attribute name="lineItemStateTaxPct" type="xs:decimal" use="required"/>
+    <xs:attribute name="potentialTaxInd" type="xs:long" use="required"/>
+    <xs:attribute name="isTranTaxable" type="xs:boolean" use="required"/>
+  </xs:complexType>
+  
+  <!-- Define the global complex datatypes -->
+    
+  <xs:complexType name="Totals">
+    <xs:attribute name="purchasePriceTotal" type="tax:anyValidMoney" use="required"/>
+    <xs:attribute name="taxTotal" type="tax:anyValidMoney" use="required"/>
+    <xs:attribute name="shippingPriceTotal" type="tax:anyValidMoney" use="required"/>
+    <xs:attribute name="taxableTotal" type="tax:anyValidMoney" use="required"/>
+  </xs:complexType>
+  
+  	<xs:simpleType name="anyValidMoney">
+		<xs:annotation>
+			<xs:documentation>representation of non-negative Money
+			</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:double">
+			<xs:minInclusive value="0.0" />
+		</xs:restriction>
+	</xs:simpleType>
+
+
+
+</xs:schema>

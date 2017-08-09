@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:tax="http://www.jcpenney.com/2011/CALCULATETAX"
+  targetNamespace="http://www.jcpenney.com/2011/CALCULATETAX"
+  elementFormDefault="unqualified" 
+  attributeFormDefault="unqualified" 
+  version="2.0.2">
+  
+  <xs:annotation>
+    <xs:documentation xml:lang="en">
+    This XML schema defines the structure of XML messages that 
+    are to be sent to the CalculateTaxService for processing.  The
+    intent of the schema is to define the pieces of information
+    that are required for the CalculateTaxService and Tax engines 
+    to calculate the tax for a customer's order.
+    </xs:documentation>
+  </xs:annotation>
+  
+  <!-- Define the TaxOrder input elements of the XML -->
+  <xs:element name="CalculateTaxInput">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="order">
+          <xs:complexType>
+            <xs:sequence>
+                           
+              <xs:element name="lineItems">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="lineItem" type="tax:LineItemType" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              
+              <xs:element name="destinationAddress" type="tax:AddressType"/>
+              
+            </xs:sequence>           
+              
+            <!-- Order level attributes -->
+            <xs:attribute name="orderDate" type="xs:dateTime" use="required"/>
+            <xs:attribute name="orderNumber" use="required" type="xs:string"/>
+                                  
+          </xs:complexType>
+        </xs:element>  
+      </xs:sequence>
+      <!-- Input XML attributes -->
+      <xs:attribute name="sourceSystem" type="xs:string" use="required"/>
+      <xs:attribute name="transactionId" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  
+  <!-- Define the complex data types -->
+  <xs:complexType name="LineItemType">
+    <xs:attribute name="lineItemSeqNumber" type="xs:positiveInteger" use="required"/>
+    <xs:attribute name="quantity" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="extendedPurchasePrice" type="tax:anyValidMoney" use="optional"/>
+    <xs:attribute name="extendedShippingPrice" type="tax:anyValidMoney" use="optional"/>
+    <xs:attribute name="productCode" type="xs:string" use="required"/>
+    <xs:attribute name="canadaDuty" type="xs:boolean" use="optional" default="false"/>
+    <xs:attribute name="canadaMFN" type="xs:boolean" use="optional" default="false"/>
+    <xs:attribute name="canadaExcise" type="xs:boolean" use="optional" default="false"/>
+    <xs:attribute name="ontarioPST" type="xs:boolean" use="optional" default="false"/>
+    <xs:attribute name="fillDC" type="tax:FillDCType" use="optional"  default="0"/>
+    <xs:attribute name="status" type="tax:ItemStatuses" use="optional" default="IS"/>
+    
+  </xs:complexType>
+  
+  <xs:complexType name="AddressType">
+    <xs:sequence>
+      <xs:element name="addressLines" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="addressLine" type="tax:AddressLineType" minOccurs="1" maxOccurs="3"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="attentionLine" minOccurs="0">
+        <xs:complexType>
+          <xs:attribute name="name" type="xs:string" use="required" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="city">
+        <xs:complexType>
+          <xs:attribute name="name" type="xs:string" use="required"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="state">
+        <xs:complexType>
+          <xs:attribute name="code" type="xs:string" use="required"/>
+          <xs:attribute name="continental" type="xs:boolean" use="optional" default="true"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="country">
+        <xs:complexType>
+          <xs:attribute name="name" type="xs:string" use="required"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="zip">
+        <xs:complexType>
+          <xs:attribute name="code" type="xs:string" use="required"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="AddressLineType">
+    <xs:attribute name="lineNumber" type="xs:positiveInteger" use="required"/>
+    <xs:attribute name="addressLine" type="xs:string" use="required"/>
+  </xs:complexType>
+  
+  
+  <xs:complexType name="PersonNameType">
+    <xs:attribute name="title" type="xs:string"/>
+    <xs:attribute name="prefix" type="xs:string"/>
+    <xs:attribute name="first" type="xs:string" use="required"/>
+    <xs:attribute name="last" type="xs:string" use="required"/>
+    <xs:attribute name="middle" type="xs:string"/>
+    <xs:attribute name="suffix" type="xs:string"/>
+  </xs:complexType>
+  
+  <xs:complexType name="PhoneNumberType">
+    <xs:attribute name="type" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="None"/>
+          <xs:enumeration value="Cell"/>
+          <xs:enumeration value="Home"/>
+          <xs:enumeration value="Unknown"/>
+          <xs:enumeration value="Work"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="number" type="xs:string" use="required"/>
+  </xs:complexType>
+   
+  <xs:simpleType name="FillDCType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="0"/>  <!-- Milwaukee, Not Active -->
+      <xs:enumeration value="1"/>  <!-- Atlanta, Not Active -->
+      <xs:enumeration value="2"/>  <!-- Columbus -->
+      <xs:enumeration value="3"/>  <!-- Lenexa -->
+      <xs:enumeration value="4"/>  <!-- Reno -->
+      <xs:enumeration value="5"/>  <!-- Manchester -->    
+      <xs:enumeration value="6"/>  <!-- Alliance -->    
+      <xs:enumeration value="7"/>  <!-- Statesville -->    
+    </xs:restriction>
+  </xs:simpleType>
+   
+	<xs:simpleType name="anyValidMoney">
+		<xs:annotation>
+			<xs:documentation>representation of non-negative Money
+			</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:double">
+			<xs:minInclusive value="0.0" />
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="ItemStatuses">
+		<xs:restriction base="xs:string">
+			<!-- Ship now statuses -->
+			<xs:enumeration value="FC" /> <!-- Factory Ship - Supplier Cancel -->
+			<xs:enumeration value="FK" /> <!-- Factory Ship - Customer Cancel -->
+			<xs:enumeration value="FR" /> <!-- Factory Ship - Release -->
+			<xs:enumeration value="FS" /> <!-- Factory Ship -->
+			<xs:enumeration value="IS" /> <!-- In Stock -->
+			<xs:enumeration value="PA" /> <!-- Partial Avail -->
+			<xs:enumeration value="PD" /> <!-- Partial xfer -->
+			<xs:enumeration value="RB" /> <!-- Back Order release -->
+			<xs:enumeration value="RS" /> <!-- Reserved -->
+			<xs:enumeration value="ST" /> <!-- Substitute -->
+			<xs:enumeration value="TR" /> <!-- ? -->
+
+
+			<!-- Ship later and non-shippable statuses -->
+			<xs:enumeration value="1C" /> <!-- 1st chance no sale -->
+			<xs:enumeration value="2C" /> <!-- 2nd chance no sale -->
+			<xs:enumeration value="AD" /> <!-- Alternate DC  -->
+			<xs:enumeration value="BC" /> <!-- Back Order Cancel (osum) -->
+			<xs:enumeration value="BD" /> <!-- Backorder Delete -->
+			<xs:enumeration value="BO" /> <!-- Back Order -->
+			<xs:enumeration value="BR" /> <!-- Back Order Reserve (osum)\Backorder Release -->
+			<xs:enumeration value="BT" /> <!-- Temp Out Back Order (osum) -->
+			<xs:enumeration value="CA" /> <!-- Cancel Item -->
+			<xs:enumeration value="CB" /> <!-- Back Order Cancel -->
+			<xs:enumeration value="CB" /> <!-- Cancel -->
+			<xs:enumeration value="DB" /> <!-- Discontinued Back Order -->
+			<xs:enumeration value="DI" /> <!-- Discontinued -->
+			<xs:enumeration value="DR" /> <!-- Discontinued Back Order (osum)/DRB Item -->
+			<xs:enumeration value="ER" /> <!-- Error item -->
+			<xs:enumeration value="NA" /> <!-- No Applicable -->
+			<xs:enumeration value="NP" /> <!-- Don't process -->
+			<xs:enumeration value="OS" /> <!-- Out Of Stock -->
+			<xs:enumeration value="PB" /> <!-- Partial Back Order -->
+			<xs:enumeration value="PR" /> <!-- ? -->
+			<xs:enumeration value="PT" /> <!-- Partial Temp Out -->
+			<xs:enumeration value="RO" /> <!-- Reorder/Partial Reorder Temp Out -->
+			<xs:enumeration value="SS" /> <!-- Stop Sale -->
+			<xs:enumeration value="SU" /> <!-- Substituted -->
+			<xs:enumeration value="TB" /> <!-- Temp Out Back Order -->
+			<xs:enumeration value="TO" /> <!-- Temp Out -->
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>
